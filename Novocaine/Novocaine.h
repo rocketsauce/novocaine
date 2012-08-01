@@ -59,7 +59,7 @@ static void CheckError(OSStatus error, const char *operation)
 }
 
 
-OSStatus inputCallback (void						*inRefCon,
+OSStatus inputCallback (void* inRefCon,
 						AudioUnitRenderActionFlags	* ioActionFlags,
 						const AudioTimeStamp 		* inTimeStamp,
 						UInt32						inOutputBusNumber,
@@ -137,10 +137,10 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 @property AudioUnit inputUnit;
 @property AudioUnit outputUnit;
 @property AudioBufferList *inputBuffer;
-@property (nonatomic, retain) OutputBlock outputBlock;
-@property (nonatomic, retain) InputBlock inputBlock;
+@property (nonatomic, strong) OutputBlock outputBlock;
+@property (nonatomic, strong) InputBlock inputBlock;
 @property BOOL inputAvailable;
-@property (nonatomic, retain) NSString *inputRoute;
+@property (nonatomic, strong) NSString *inputRoute;
 @property UInt32 numInputChannels;
 @property UInt32 numOutputChannels;
 @property Float64 samplingRate;

@@ -75,7 +75,6 @@
     if (self.playing)
         [self pause];
     
-    self.readerBlock = nil;
     
     // Close the ExtAudioFile
     ExtAudioFileDispose(self.inputFile);
@@ -85,7 +84,6 @@
     
     delete ringBuffer;
     
-    [super dealloc];
 }
 
 
@@ -101,7 +99,7 @@
         
         // Open a reference to the audio file
         self.audioFileURL = urlToAudioFile;
-        CFURLRef audioFileRef = (CFURLRef)self.audioFileURL;
+        CFURLRef audioFileRef = (__bridge CFURLRef)self.audioFileURL;
         CheckError(ExtAudioFileOpenURL(audioFileRef, &_inputFile), "Opening file URL (ExtAudioFileOpenURL)");
 
         

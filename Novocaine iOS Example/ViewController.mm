@@ -174,12 +174,13 @@
                   samplingRate:audioManager.samplingRate
                   numChannels:audioManager.numOutputChannels];
     
+	__weak AudioFileReader *reader = fileReader;
     [fileReader play];
     fileReader.currentTime = 30.0;
     
     [audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
      {
-         [fileReader retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
+         [reader retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
          NSLog(@"Time: %f", fileReader.currentTime);
      }];
 

@@ -105,18 +105,6 @@ static Novocaine *audioManager = nil;
     return self;
 }
 
-- (id)retain {
-    return self;
-}
-
-- (unsigned)retainCount {
-    return UINT_MAX;  // denotes an object that cannot be released
-}
-
-- (oneway void)release {
-    //do nothing
-}
-
 - (id)init
 {
 	if (self = [super init])
@@ -154,16 +142,12 @@ static Novocaine *audioManager = nil;
 #pragma mark - Block Handling
 - (void)setInputBlock:(InputBlock)newInputBlock
 {
-    InputBlock tmpBlock = inputBlock;
-    inputBlock = Block_copy(newInputBlock);
-    Block_release(tmpBlock);
+	inputBlock = [newInputBlock copy];
 }
 
 - (void)setOutputBlock:(OutputBlock)newOutputBlock
 {
-    OutputBlock tmpBlock = outputBlock;
-    outputBlock = Block_copy(newOutputBlock);
-    Block_release(tmpBlock);
+	outputBlock = [newOutputBlock copy];
 }
 
 
@@ -175,7 +159,7 @@ static Novocaine *audioManager = nil;
 	// Initialize and configure the audio session, and add an interuption listener
     
 #if defined ( USING_IOS )
-    CheckError( AudioSessionInitialize(NULL, NULL, sessionInterruptionListener, self), "Couldn't initialize audio session");
+    CheckError( AudioSessionInitialize(NULL, NULL, sessionInterruptionListener, (__bridge void *)(self)), "Couldn't initialize audio session");
     [self checkAudioSource];    
 #elif defined ( USING_OSX )
     // TODO: grab the audio device
@@ -205,7 +189,6 @@ static Novocaine *audioManager = nil;
 						 otherButtonTitles:nil];
 		
 		[noInputAlert show];
-		[noInputAlert release];
 #endif
         
 	}
@@ -228,7 +211,7 @@ static Novocaine *audioManager = nil;
     
     
     // Add a property listener, to listen to changes to the session
-    CheckError( AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, sessionPropertyListener, self), "Couldn't add audio session property listener");
+    CheckError( AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, sessionPropertyListener, (__bridge void *)(self)), "Couldn't add audio session property listener");
     
     // Set the buffer size, this will affect the number of samples that get rendered every time the audio callback is fired
     // A small number will get you lower latency audio, but will make your processor work harder
@@ -515,7 +498,7 @@ static Novocaine *audioManager = nil;
     // Slap a render callback on the unit
     AURenderCallbackStruct callbackStruct;
     callbackStruct.inputProc = inputCallback;
-    callbackStruct.inputProcRefCon = self;
+    callbackStruct.inputProcRefCon = (__bridge void *)(self);
     
     CheckError( AudioUnitSetProperty(inputUnit, 
                                      kAudioOutputUnitProperty_SetInputCallback, 
@@ -526,7 +509,7 @@ static Novocaine *audioManager = nil;
     
     
     callbackStruct.inputProc = renderCallback;
-    callbackStruct.inputProcRefCon = self;
+    callbackStruct.inputProcRefCon = (__bridge void *)(self);
 # if defined ( USING_OSX )    
     CheckError( AudioUnitSetProperty(outputUnit, 
                                      kAudioUnitProperty_SetRenderCallback, 
@@ -652,7 +635,7 @@ OSStatus inputCallback   (void						*inRefCon,
 {
     
     
-	Novocaine *sm = (Novocaine *)inRefCon;
+	Novocaine *sm = (__bridge Novocaine *)inRefCon;
     
     if (!sm.playing)
         return noErr;
@@ -716,7 +699,7 @@ OSStatus renderCallback (void						*inRefCon,
 {
     
     
-	Novocaine *sm = (Novocaine *)inRefCon;    
+	Novocaine *sm = (__bridge Novocaine *)inRefCon;
     float zero = 0.0;
     
     
@@ -778,7 +761,7 @@ void sessionPropertyListener(void *                  inClientData,
     
 	if (inID == kAudioSessionProperty_AudioRouteChange)
     {
-        Novocaine *sm = (Novocaine *)inClientData;
+        Novocaine *sm = (__bridge Novocaine *)inClientData;
         [sm checkSessionProperties];
     }
     
@@ -789,8 +772,8 @@ void sessionPropertyListener(void *                  inClientData,
     UInt32 propertySize = sizeof(CFStringRef);
     CFStringRef route;
     CheckError( AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &propertySize, &route), "Couldn't check the audio route");
-    self.inputRoute = (NSString *)route;
-    CFRelease(route);
+    self.inputRoute = (NSString *)CFBridgingRelease(route);
+	
     NSLog(@"AudioRoute: %@", self.inputRoute);
     
     
@@ -844,7 +827,7 @@ void sessionPropertyListener(void *                  inClientData,
 
 void sessionInterruptionListener(void *inClientData, UInt32 inInterruption) {
     
-	Novocaine *sm = (Novocaine *)inClientData;
+	Novocaine *sm = (__bridge Novocaine *)inClientData;
     
 	if (inInterruption == kAudioSessionBeginInterruption) {
 		NSLog(@"Begin interuption");

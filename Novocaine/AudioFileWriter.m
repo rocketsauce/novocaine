@@ -67,7 +67,6 @@
     free(self.outputBuffer);
     free(self.holdingBuffer);
     
-    [super dealloc];
 }
 
 - (id)initWithAudioFileURL:(NSURL *)urlToAudioFile samplingRate:(float)thisSamplingRate numChannels:(UInt32)thisNumChannels
@@ -82,7 +81,7 @@
 
         // Open a reference to the audio file
         self.audioFileURL = urlToAudioFile;
-        CFURLRef audioFileRef = (CFURLRef)self.audioFileURL;
+        CFURLRef audioFileRef = (__bridge CFURLRef)self.audioFileURL;
 
         AudioStreamBasicDescription outputFileDesc = {44100.0, kAudioFormatMPEG4AAC, 0, 0, 1024, 0, 2, 0, 0};
         
